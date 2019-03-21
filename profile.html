@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<link rel="stylesheet" href="/css/main.css">
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+
+		<title>User Site</title>
+		<style></style>
+	</head>
+	<body>
+		<div class="container-fluid">
+			<my-navbar></my-navbar>
+			<div class="contents">
+				<div class="row">
+					<div class="col-sm-2">
+					<!--div class="border">
+						<div class="media p-3">
+        						<img src="../avatar.png" alt="John Doe" class="rounded-circle m-auto" style="width:80px;height:80px">
+	 					</div>
+	  					<button type="button" onclick="displayProfile()" class="btn btn-link m-auto"> John Doe</a>
+	  				</div-->
+
+					<!--div class="card" style="width:300px">
+    						<img class="card-img-top" src="../avatar.png" alt="Card image" style="width:100%">
+    						<div class="card-body">
+      							<h4 class="card-title">John Doe</h4>
+      							<p class="card-text">Some example text some example text. John Doe is an architect and engineer</p>
+      							<a href="#" class="btn btn-primary stretched-link">See Profile</a>
+    						</div>
+  					</div-->
+					</div>
+					<div class="col-sm-8">
+						<div class="jumbotron">
+							<div class="media border p-3" style="" id="dp">
+	        						<img src="avatar.png" alt="John Doe" id="avatar" class="mr-3 mt-3 rounded-circle" style="width:250px;height:250px">
+	        						<div class="media-body ml-4">
+									<span id="name-edit">
+	          								<input type="text" id="user-name" class="form-control-plaintext" value="John Doe" style="font-size:25px" pattern="[a-zA-Z]{50}" title="a to z and A to Z only, maximum length:50" disabled>
+									</span>
+									<span id="about-edit">
+										<textarea type="text" id="about-user" class="form-control-plaintext" style="color:gray" disabled></textarea>
+									</span>
+	        						</div>
+							</div>
+							<button type="button" class="btn btn-primary float-right mt-2" id="save-button" disabled>Save Changes</button>
+						</div>
+					</div>
+					<div class="col-sm-2">
+					</div>
+				</div>
+			</div>
+		</div>
+		<script type="module" src="/modules/navbar.js"></script>
+		<script src="/profile.js" charset="utf-8"></script>
+	</body>
+</html>
