@@ -9,7 +9,7 @@
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
 		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
 
-		<title>User Site</title>
+		<title></title>
 		<style></style>
 	</head>
 	<body>
@@ -37,7 +37,9 @@
 					<div class="col-sm-8">
 						<div class="jumbotron">
 							<div class="media border p-3" style="" id="dp">
-	        						<img src="avatar.png" alt="John Doe" id="avatar" class="mr-3 mt-3 rounded-circle" style="width:250px;height:250px">
+	        						<label for="avatar-update"><img src="/avatar.png" alt="John Doe" id="avatar" class="mr-3 mt-3 rounded-circle" style="width:250px;height:250px"></label>
+								<input type="file" id="avatar-update" accept="image/*" style="display:none;" data-toggle="modal" data-target="#update-dp-modal">
+
 	        						<div class="media-body ml-4">
 									<span id="name-edit">
 	          								<input type="text" id="user-name" class="form-control-plaintext" value="John Doe" style="font-size:25px" pattern="[a-zA-Z]{50}" title="a to z and A to Z only, maximum length:50" disabled>
@@ -48,6 +50,35 @@
 	        						</div>
 							</div>
 							<button type="button" class="btn btn-primary float-right mt-2" id="save-button" disabled>Save Changes</button>
+							<div class="modal" id="update-dp-modal">
+								<div class="modal-dialog modal-dialog-centered">
+									<div class="modal-content">
+										<div class="modal-header">
+											<h2>Confirm</h2>
+											<!--span class="close" id="cls" onclick="document.getElementById('change-dp-modal').style.display='none'">&times;</span-->
+											<button type="button" class="close" data-dismiss="modal">&times;</button>
+										</div>
+										<div class="modal-body">
+											<div class="media p-3">
+												<img src="" alt="Select photo" class="mx-auto rounded-circle" id="temp-profile" style="width:150px;height:150px">
+											</div>
+										</div>
+										<div class="modal-footer">
+											<button type="button" id="cancelBtn" class="btn btn-danger btn-sm float-right" data-dismiss="modal" >Cancel</button>
+											<button type="button" id="acceptBtn" class="btn btn-success btn-sm float-right" data-dismiss="modal" >Accept</button>
+										</div>
+									</div>
+								</div>
+							</div>
+
+							<div class="toast mt-3">
+    								<div class="toast-header">
+      									Done!
+    								</div>
+    								<div class="toast-body">
+      									Your profile is updated.
+    								</div>
+  							</div>
 						</div>
 					</div>
 					<div class="col-sm-2">
@@ -57,5 +88,11 @@
 		</div>
 		<script type="module" src="/modules/navbar.js"></script>
 		<script src="/profile.js" charset="utf-8"></script>
+		<script type="text/javascript">
+			$(document).ready(function(){
+				$("#save-button").click(function(){
+					$('.toast').toast('show');});
+				});
+		</script>
 	</body>
 </html>
