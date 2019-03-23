@@ -34,7 +34,7 @@ var uploadImage = function(event)	{
 		for(let i=0;i<files.length;i++)	{
 			const reader = new FileReader();
 			const file = files[i];
-			fileNames.push(file.name);
+			fileNames.push([file.name,""]);
 
 			reader.onload = async function()	{
 				var targetPath = `/posts/images/${file.name}`;

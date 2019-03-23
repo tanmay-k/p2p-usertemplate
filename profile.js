@@ -59,12 +59,14 @@ var saveChanges = async function()	{
 				//var avatarImg = getNameAndExtension(updatedAvatar.name);
 				//var targetPath = `/avatar.${avatarImg[1]}`;
 				//setTimeout(async function(){await archive.writeFile(targetPath,reader.result);},200);
+				//await archive.unlink(profile.avatar);
 				await archive.writeFile(targetPath,reader.result);
 				profile.avatar = targetPath;
+				console.log(profile.avatar);
 			} catch (e) {
 
 			} finally {
-				}
+			}
 		}
 		reader.readAsArrayBuffer(updatedAvatar);
 	}
@@ -72,12 +74,14 @@ var saveChanges = async function()	{
 	profile.name = document.querySelector('#user-name').value;
 	profile.about = document.querySelector('#about-user').value;
 	var newProfile = JSON.stringify(profile);
-	await archive.unlink('/profile.json');
-	await archive.writeFile('/profile.json',newProfile);
-	await archive.configure({
-		title:'P2P-Photo Share user: '+profile.name
-	});
-	setTimeout(function(){renderProfile();},200);
+	setTimeout(async function(){
+		//await archive.unlink('/profile.json');
+		await archive.writeFile('/profile.json',newProfile);
+		await archive.configure({
+			title:'P2P-Photo Share user: '+profile.name
+		});
+		setTimeout(function(){renderProfile();},2000);},5000);
+	disableSave();
 };
 
 var uploadImage = function(event)	{
@@ -92,7 +96,7 @@ var uploadImage = function(event)	{
 			var dataURL = reader.result;
 			tempImg.src=dataURL;
 		};
-		reader.readAsDataURL(files[0]);
+		reader.readAsDataURL(updatedAvatar);
 		enableSave();
 	}
 };

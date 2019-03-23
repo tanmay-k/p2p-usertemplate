@@ -37,7 +37,7 @@
 					<div class="col-sm-8">
 						<div class="jumbotron">
 							<div class="media border p-3" style="" id="dp">
-	        						<label for="avatar-update"><img src="/avatar.png" alt="John Doe" id="avatar" class="mr-3 mt-3 rounded-circle" style="width:250px;height:250px"></label>
+	        						<label for="avatar-update"><img src="" alt="John Doe" id="avatar" class="mr-3 mt-3 rounded-circle" style="width:250px;height:250px"></label>
 								<input type="file" id="avatar-update" accept="image/*" style="display:none;" data-toggle="modal" data-target="#update-dp-modal">
 
 	        						<div class="media-body ml-4">
@@ -50,6 +50,14 @@
 	        						</div>
 							</div>
 							<button type="button" class="btn btn-primary float-right mt-2" id="save-button" disabled>Save Changes</button>
+							<div class="toast mt-3">
+    								<div class="toast-header">
+      									Done
+    								</div>
+    								<div class="toast-body">
+      									Your profile is updated successfully.
+    								</div>
+  							</div>
 							<div class="modal" id="update-dp-modal">
 								<div class="modal-dialog modal-dialog-centered">
 									<div class="modal-content">
@@ -70,15 +78,6 @@
 									</div>
 								</div>
 							</div>
-
-							<div class="toast mt-3">
-    								<div class="toast-header">
-      									Done!
-    								</div>
-    								<div class="toast-body">
-      									Your profile is updated.
-    								</div>
-  							</div>
 						</div>
 					</div>
 					<div class="col-sm-2">
