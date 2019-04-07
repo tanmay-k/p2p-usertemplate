@@ -31,6 +31,8 @@ var uploadImage = function(event)	{
 		var fileNames = [];
 		var timeOut = 5000;
 
+		window.open("newAlbum.html","Uploading Photos!");
+
 		for(let i=0;i<files.length;i++)	{
 			const reader = new FileReader();
 			const file = files[i];
@@ -149,6 +151,7 @@ var createAlbum = async function(imageNames)	{
 
 //Was trying to show a preview of images selected by user before actuallystoring them in archive. Sadly not working :(
 //so this method is not used, just ignore this!
+/*
 var confirmUpload = function(event)	{
 	if( event.target.files )	{
 		var {files} = event.target;
@@ -204,7 +207,7 @@ var confirmUpload = function(event)	{
 			carItemdivElement.appendChild(imgElement);
 		}
 	}
-}
+}*/
 
 //Just returns random alphanumeric string of given length.
 //Although this method is not in use currently, but I think it might be useful in future
