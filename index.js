@@ -1,6 +1,7 @@
 var archive = new DatArchive(window.location);
 var uploadedImages;
-
+var timeOut = 5000; //used to create delay while creating new album
+var albumArchive;
 /* Render profile */
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -21,17 +22,66 @@ var renderProfile = async function()	{
 renderProfile();
 
 ////////////////////////////////////////////////////////////////////////////////
+//Check if user is the owner of archive,
+//if no, then don't allow that person to create, delete the archive
+var checkOwnership = async function()	{
+	var info =  await archive.getInfo();
+	if( !info.isOwner )	{
+		document.querySelector('#new-album').disabled = true;
+		document.querySelector('#sharePhotos').disabled = true;
+		document.querySelector('#deletePhotos').disbaled = true;
+		//document.querySelector('#profile-link').href = '#';
+	}
+};
+checkOwnership();
+////////////////////////////////////////////////////////////////////////////////
 
-var uploadImage = function(event)	{
+var uploadImage = async function(event)	{
 	var fileTag = document.querySelector('input[type="file"]');
 	//if( event.target.files )	{
 	if( fileTag.files )	{
 		//const {files} = event.target;
 		const files = fileTag.files;
 		var fileNames = [];
-		var timeOut = 5000;
 
-		window.open("newAlbum.html","Uploading Photos!");
+		//Disable the new album button so that only one album can be created at a time
+		var createAlbumBtn = document.querySelector("#postPhotos")
+		createAlbumBtn.disabled = true;
+		var spinner = document.createElement('span');
+		spinner.setAttribute('class','spinner-grow spinner-grow-sm');
+		spinner.setAttribute('data-toggle','tooltip');
+		spinner.setAttribute('title','Please wait!... Creating new album...');
+		createAlbumBtn.appendChild(spinner);
+
+		//sessionStorage.setItem("fileArray",files);
+		//window.open("newAlbum.html","Uploading Photos!");
+
+		/*var albumArchive = await DatArchive.create(
+			{
+				title: "P2P-Album: "+document.querySelector('#album-name').value,
+				description: "An album archive for p2p-photoshare",
+				//type: "user-album",
+				prompt: true
+			}
+		);*/
+		var albumTemplateRawUrl = await DatArchive.resolveName('dat://album-template.hashbase.io/');
+		albumArchive = await DatArchive.fork(`dat://${albumTemplateRawUrl}`,{
+	  		title: 'P2p-Photo Album: ' + document.querySelector('#album-name').value,
+	  		description: 'Photos you upload will be stored here',
+	  		prompt: true
+		});
+
+		var time = Date.now().toString();
+		var albumConfigObj = {
+			"name": document.querySelector('#album-name').value,
+			"parent": archive.url,
+			"createdAt": time
+		};
+
+		var albumConfigStr = JSON.stringify(albumConfigObj);
+
+		await albumArchive.writeFile('/config.json',albumConfigStr);
+		//console.log(albumArchive);
 
 		for(let i=0;i<files.length;i++)	{
 			const reader = new FileReader();
@@ -41,88 +91,25 @@ var uploadImage = function(event)	{
 			reader.onload = async function()	{
 				var targetPath = `/posts/images/${file.name}`;
 
-				try {
+				/*try {
 					await archive.stat(targetPath);
 				} catch (e) {
 					//await archive.writeFile(targetPath,reader.result);
 					setTimeout(async function(){await archive.writeFile(targetPath,reader.result);},timeOut+=5000);
 				} finally {
-				}
+				}*/
 				//appendImage(targetPath);
+				setTimeout(async function(){albumArchive.writeFile(targetPath,reader.result);},timeOut+=3000);
 			};
 			//setTimeout(function(){reader.readAsArrayBuffer(file);},timeOut+=5000);
 			reader.readAsArrayBuffer(file);
 		}
 
-		createAlbum(fileNames);//Now create album.json
+		createAlbum(fileNames,albumArchive.url);//Now create album.json
 	}
 }
 
-//Trying to use web worker for reading images from file system
-/*var uploadImage = async function(event)	{
-	var fileTag = document.querySelector('input[type="file"]');
-	//if( event.target.files )	{
-	if( fileTag.files )	{
-		//const {files} = event.target;
-		const files = fileTag.files;
-		var fileNames = [];
-		var i = 0;
-
-		//for(let i=0;i<files.length;i++)	{
-		//	const reader = new FileReader();
-		//	const file = files[i];
-		//	fileNames.push(file.name);
-
-		//	var uploadWorker = new Worker('/modules/uploadImageWorker.js');
-		//	uploadWorker.onmessage = async function(event)	{
-		//		console.log(event.data);
-		//		var targetPath = `/posts/images/${file.name}`;
-		//		try {
-		//			await archive.stat(targetPath);
-		//		} catch (e) {
-		//			await archive.writeFile(targetPath,event.data);
-		//		} finally {
-		//		}
-		//	};
-		//	uploadWorker.postMessage(file);
-		//}
-		var uploadWorker = new Worker('/modules/uploadImageWorker.js');
-		uploadWorker.onmessage = async function(event)	{
-			if( typeof(event.data) === 'string' )	{
-				if( event.data.includes('done') )	{
-					terminateWorker();
-				}
-				else if ( event.data.startsWith('ERROR:') ) {
-					console.log(event.data);
-				}
-			}
-			else if ( event.data.__proto__ && event.data.__proto__.constructor === Array )  {
-				fileNames = event.data;
-			}
-			else if ( event.data.__proto__ && event.data.__proto__.constructor === ArrayBuffer ) {
-				var targetPath = `/posts/images/${files[i++].name}`;
-				try {
-					await archive.stat(targetPath);
-				} catch (e) {
-					await archive.writeFile(targetPath,event.data);
-				} finally {
-				}
-			}
-		}
-		//uploadWorker.postMessage(archive,[archive.__proto__]);
-		setTimeout(function()	{uploadWorker.postMessage(files);},100);
-
-		var terminateWorker = function()	{
-			uploadWorker.terminate();
-			uploadWorker = undefined;
-		}
-		//uploadWorker.terminate();
-		//uploadWorker = undefined;
-		createAlbum(fileNames);//Now create album.json
-	}
-};*/
-
-var createAlbum = async function(imageNames)	{
+var createAlbum = async function(imageNames,archiveURL)	{
 	var albumName = document.querySelector('#album-name').value;
 	//var albumName = "firstAlbum";
 
@@ -137,77 +124,24 @@ var createAlbum = async function(imageNames)	{
 		var curTime = Date.now().toString();
 		var newAlbum = {
 			'name': albumName,
+			'url': archiveURL,
 			'images': imageNames,
 			'createdAt': curTime
 		}
 		var newAlbumString = JSON.stringify(newAlbum);
+		await albumArchive.writeFile(targetPath,newAlbumString);
 		await archive.writeFile(targetPath,newAlbumString);
 
 	} finally {
 	}
 
-	appendAlbum(albumName);	//Reload album list now
+	setTimeout(function(){
+		appendAlbum(albumName);
+		var createAlbumBtn = document.querySelector("#postPhotos");
+		createAlbumBtn.innerHTML = 'New Album';
+		createAlbumBtn.disabled = false;// enable the new album button
+	},timeOut+500);	//Reload album list after all images gets uploaded
 }
-
-//Was trying to show a preview of images selected by user before actuallystoring them in archive. Sadly not working :(
-//so this method is not used, just ignore this!
-/*
-var confirmUpload = function(event)	{
-	if( event.target.files )	{
-		var {files} = event.target;
-		var parentDiv = document.querySelector('div[class="modal-body"]');
-		uploadedImages = files;
-
-		for(let i=0;i<files.length;i++)	{
-			const reader = new FileReader();
-			const file = files[i];
-			var liElement;
-			var carItemdivElement;
-			var carCapDivElement;
-			var captionElement;
-
-			liElement = document.createElement('li');
-			liElement.setAttribute('data-target','confirm-img-carousel');
-			liElement.setAttribute('data-slide-to',i);
-
-			carItemdivElement = document.createElement('div');
-
-			carCapDivElement = document.createElement('div');
-			carCapDivElement.setAttribute('class','carousel-caption');
-
-			captionElement = document.createElement('input');
-			captionElement.id = 'caption-'+i;
-			captionElement.type = 'text';
-			captionElement.class = 'form-control-plaintext';
-			captionElement.style = 'background-color:white;opcaity:0.6';
-			captionElement.placeholder = 'Add caption here';
-
-			if( i === 0 )	{
-				//generate li and div element with active class for first image
-				liElement.setAttribute('class','active');
-				carItemdivElement.setAttribute('class','carousel-item active');
-			}
-			else {
-				carItemdivElement.setAttribute('class','carousel-item');
-			}
-
-			document.querySelector('ul[class="carousel-indicators"]').appendChild(liElement);
-			document.querySelector('div[class="carousel-inner"]').appendChild(carItemdivElement);
-			carCapDivElement.appendChild(captionElement);
-			carItemdivElement.appendChild(carCapDivElement);
-
-			var imgElement = document.createElement('img');
-
-			reader.onload = function()	{
-				imgElement.src = reader.result;
-			}
-			reader.readAsDataURL(files[i]);
-			imgElement.height = '150px';
-			imgElement.width = '150px';
-			carItemdivElement.appendChild(imgElement);
-		}
-	}
-}*/
 
 //Just returns random alphanumeric string of given length.
 //Although this method is not in use currently, but I think it might be useful in future
@@ -231,18 +165,22 @@ var redirectToAlbum = function(event)	{
 	window.location = '/album.html';
 }
 
-var appendAlbum = function(name)	{
+var appendAlbum = async function(name)	{
 	//console.log(name);
 	var albumList = document.querySelector('#album-list');
 	//console.log(albumList);
 
 	var anchorEl,mediaEl,mediaBodyEl,albumNameEl,nameTextEl;
 
+	var albumName = `/posts/albums/${name}.json`;
+	var albumStr = await archive.readFile(albumName);
+	var album = JSON.parse(albumStr);
 	anchorEl = document.createElement('a');
-	anchorEl.setAttribute('href','#');
+	//anchorEl.setAttribute('href','#');
+	anchorEl.setAttribute('href',album.url);
 	anchorEl.setAttribute('data-target','_blank');
 	anchorEl.setAttribute('id',name)
-	anchorEl.addEventListener('click',redirectToAlbum);
+	//anchorEl.addEventListener('click',redirectToAlbum);
 
 	mediaEl = document.createElement('div');
 	mediaEl.setAttribute('class','media border p-3');
@@ -269,8 +207,23 @@ var loadAlbums = async function()	{
 		var paths = await archive.readdir('/posts/albums');
 
 		for(let i=0;i<paths.length;i++)	{
-			const path = `/posts/albums/${paths[i]}`;
-			appendAlbum(paths[i]);
+			var path = `/posts/albums/${paths[i]}`;
+			console.log(path);
+			if( path.endsWith('.empty') )	{
+				await archive.unlink(path);
+				continue;
+			}
+			try {
+				var albumStr = await archive.readFile(path);
+				var album = JSON.parse(albumStr);
+				var arch = new DatArchive(album.url);
+				//await arch.stat('/index.html');
+				appendAlbum(path);
+			} catch (e) {
+				console.log(e);
+			} finally {
+
+			}
 		}
 	} catch (e) {
 		console.log(e);

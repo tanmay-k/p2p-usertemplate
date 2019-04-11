@@ -27,7 +27,7 @@ class NavbarElement extends HTMLElement {
 		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
 
 		<nav class="navbar navbar-expand-sm bg-dark navbar-dark fixed-top justify-content-left">
-			<a class="navbar-brand" href="/">Image Sharing Portal</a>
+			<span class="logo"><a class="navbar-brand" href="/">pixfly</a></span>
 
 			<ul class="navbar-nav">
 				${renderNavLink("/profile.html","Profile")}

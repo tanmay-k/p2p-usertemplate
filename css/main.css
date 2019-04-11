@@ -1,3 +1,15 @@
 .contents	{
 	margin-top: 4%;
 }
+
+@font-face {
+	font-family: appNameFont;
+	src: url("/fonts/fscript.ttf");
+}
+
+.logo	{
+	font-family: appNameFont;
+	font-weight: bolder;
+	font-style: italic;
+	font-size: 30px;
+}
