@@ -92,7 +92,7 @@ var saveChanges = async function()	{
 		await archive.configure({
 			title:'P2P-Photo Share user: '+updatedProfile.name
 		});
-		setTimeout(function(){profile=updatedProfile;renderProfile();},2000);},5000);
+		setTimeout(function(){profile=updatedProfile;renderProfile();},200);},500);
 	disableSave();
 };
 

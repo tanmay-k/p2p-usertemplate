@@ -7,6 +7,7 @@ var albumArchive;
 
 var renderProfile = async function()	{
 	try {
+		//var profileSection = document.getElementById("profileSection");
 		var prof = await archive.readFile('/profile.json');//Returns string
 		var profile = JSON.parse(prof);//Convert string to JSON object
 		document.querySelector('title').innerHTML = profile.name;
@@ -14,11 +15,13 @@ var renderProfile = async function()	{
 		document.querySelector('h4[class="card-title"]').innerHTML = profile.name;
 		document.querySelector('p[class="card-text"]').innerHTML = profile.about;
 	} catch (e) {
+
 		console.log(e);
 	} finally {
 	}
 };
 
+//window on load
 renderProfile();
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -66,7 +69,7 @@ var uploadImage = async function(event)	{
 		);*/
 		var albumTemplateRawUrl = await DatArchive.resolveName('dat://album-template.hashbase.io/');
 		albumArchive = await DatArchive.fork(`dat://${albumTemplateRawUrl}`,{
-	  		title: 'P2p-Photo Album: ' + document.querySelector('#album-name').value,
+	  		title: 'pixfly Album: ' + document.querySelector('#album-name').value,
 	  		description: 'Photos you upload will be stored here',
 	  		prompt: true
 		});
@@ -172,31 +175,111 @@ var appendAlbum = async function(name)	{
 
 	var anchorEl,mediaEl,mediaBodyEl,albumNameEl,nameTextEl;
 
-	var albumName = `/posts/albums/${name}.json`;
+	var albumName = name.endsWith('.json')?`/posts/albums/${name}`:`/posts/albums/${name}.json`;
 	var albumStr = await archive.readFile(albumName);
 	var album = JSON.parse(albumStr);
 	anchorEl = document.createElement('a');
 	//anchorEl.setAttribute('href','#');
 	anchorEl.setAttribute('href',album.url);
 	anchorEl.setAttribute('data-target','_blank');
-	anchorEl.setAttribute('id',name)
+	anchorEl.setAttribute('id',`a-${name}`)
 	//anchorEl.addEventListener('click',redirectToAlbum);
 
 	mediaEl = document.createElement('div');
 	mediaEl.setAttribute('class','media border p-3');
+	mediaEl.setAttribute('id',name);
 
 	mediaBodyEl = document.createElement('div');
 	mediaBodyEl.setAttribute('class','media-body');
 
 	albumNameEl = document.createElement('h3');
-	albumNameEl.setAttribute('id',name);
-	nameTextEl = document.createTextNode(name.includes('.')?name.split('.')[0]:name);
-	albumNameEl.appendChild(nameTextEl);
+	//albumNameEl.setAttribute('id',name);
+	//nameTextEl = document.createTextNode(name.includes('.')?name.split('.')[0]:name);
+	anchorEl.innerText = name.includes('.')?name.split('.')[0]:name;
+	//albumNameEl.appendChild(nameTextEl);
+	albumNameEl.appendChild(anchorEl);
+	mediaBodyEl.appendChild(albumNameEl);
+	mediaEl.appendChild(mediaBodyEl);
+	albumList.appendChild(mediaEl);
 
+	var info = await archive.getInfo();
+
+	if( info.isOwner )	{
+		var deleteBtn = document.createElement('button');
+		deleteBtn.setAttribute('type','button');
+		deleteBtn.setAttribute('id',`del-${name}`);
+		deleteBtn.setAttribute('class','btn btn-outline-danger btn-sm m-2 float-right');
+
+		var deleteicon = document.createElement('i')//document.createElement('span');
+		//deleteicon.setAttribute('class','glyphicon glyphicon-trash');
+		//deleteicon.setAttribute('src',imgSrc);
+		//deleteicon.setAttribute('id',`cardD-${i}`);
+		deleteicon.setAttribute('class','fa fa-trash');
+		deleteicon.setAttribute('aria-hidden','true');
+		deleteicon.setAttribute('id',`delico-${name}`);
+		deleteicon.addEventListener('click',deleteAlbum);
+		deleteBtn.appendChild(deleteicon);
+		deleteBtn.addEventListener('click',deleteAlbum);
+
+		//mediaBodyEl.appendChild(deleteBtn);
+		albumNameEl.appendChild(deleteBtn);
+
+		var shareBtn = document.createElement('button');
+		shareBtn.setAttribute('type','button');
+		shareBtn.setAttribute('id',`shr-${name}`);
+		shareBtn.setAttribute('class','btn btn-outline-primary btn-sm m-2 float-right');
+		shareBtn.addEventListener('click',shareAlbum);
+
+		var shareIcon = document.createElement('i');
+		shareIcon.setAttribute('class','fa fa-share-alt-square');
+		shareIcon.setAttribute('aria-hidden','true');
+		shareIcon.setAttribute('id',`shrico-${name}`);
+		shareIcon.addEventListener('click',shareAlbum);
+
+		shareBtn.appendChild(shareIcon);
+		//mediaBodyEl.appendChild(shareBtn);
+		albumNameEl.appendChild(shareBtn);
+	}
+/*
 	mediaBodyEl.appendChild(albumNameEl);
 	mediaEl.appendChild(mediaBodyEl);
 	anchorEl.appendChild(mediaEl);
-	albumList.appendChild(anchorEl);
+	albumList.appendChild(anchorEl);*/
+
+	/*anchorEl.appendChild(nameTextEl);
+	albumNameEl.appendChild(anchorEl);
+	mediaBodyEl.appendChild(albumNameEl);
+	mediaEl.appendChild(mediaBodyEl);*/
+};
+
+var shareAlbum = function(event)	{
+	var id = event.target.attribute.id.value;
+	var textBox = document.createElement('input');
+	textBox.type = "text";
+	textBox.style = "visiblity:hidden";
+	textBox.value = document.querySelector(`a-${id.split('-')[1]}`);
+	document.appendChild(textBox);
+
+	textBox.select();
+	textBox.execCommand("copy");
+	alert("Album URL copied to clipboard!, Now you can share it anywhere...");
+}
+
+var deleteAlbum = async function(e)	{
+	var albumList = document.querySelector('#album-list');
+	if( ( e.toElement.localName === "i" & e.toElement.className === "fa fa-trash" ) || ( e.toElement.localName === "button" & e.toElement.className === "btn btn-outline-danger btn-sm m-2 float-right" ) )	{
+		var id = event.target.attributes['id'].value;
+		var albumMedia = document.querySelector(`#a-${id.split('-')[1]}`);
+		console.log(albumMedia);
+		var albumRef = albumMedia.href;
+		console.log(albumRef);
+		var albumToDelete = document.querySelector(`#${id.split('-')[1]}`);
+		await DatArchive.unlink(albumRef);
+		albumList.removeChild(albumToDelete);
+
+		console.log(`/posts/albums/${id.split('-')[1]}.json`);
+		await archive.unlink(`/posts/albums/${id.split('-')[1]}.json`);
+	}
 }
 
 //document.querySelector('#new-album').addEventListener('change',uploadImage);
@@ -205,20 +288,20 @@ document.querySelector('#upload-images').addEventListener('click',uploadImage);/
 var loadAlbums = async function()	{
 	try {
 		var paths = await archive.readdir('/posts/albums');
-
+		console.log(paths);
 		for(let i=0;i<paths.length;i++)	{
 			var path = `/posts/albums/${paths[i]}`;
 			console.log(path);
 			if( path.endsWith('.empty') )	{
-				await archive.unlink(path);
-				continue;
+				//await archive.unlink(path);// do not uncomment this line, it can cause major problems!
+				continue;//ignore the .empty file
 			}
 			try {
 				var albumStr = await archive.readFile(path);
 				var album = JSON.parse(albumStr);
 				var arch = new DatArchive(album.url);
 				//await arch.stat('/index.html');
-				appendAlbum(path);
+				appendAlbum(paths[i]);
 			} catch (e) {
 				console.log(e);
 			} finally {
@@ -332,3 +415,48 @@ thumbnailer.prototype.process2 = function(self) {
     self.ctx.putImageData(self.src, 0, 0);
     self.canvas.style.display = "block";
 };
+
+var shim = shim || {};
+shim.init = function(){
+	shim.closestPolyfill();
+}
+shim.closestPolyfill = function(){
+	// matches polyfill
+	this.Element && function(ElementPrototype) {
+	    ElementPrototype.matches = ElementPrototype.matches ||
+	    ElementPrototype.matchesSelector ||
+	    ElementPrototype.webkitMatchesSelector ||
+	    ElementPrototype.msMatchesSelector ||
+	    function(selector) {
+	        var node = this, nodes = (node.parentNode || node.document).querySelectorAll(selector), i = -1;
+	        while (nodes[++i] && nodes[i] != node);
+	        return !!nodes[i];
+	    }
+	}(Element.prototype);
+
+	// closest polyfill
+	this.Element && function(ElementPrototype) {
+	    ElementPrototype.closest = ElementPrototype.closest ||
+	    function(selector) {
+	        var el = this;
+	        while (el.matches && !el.matches(selector)) el = el.parentNode;
+	        return el.matches ? el : null;
+	    }
+	}(Element.prototype);
+}
+
+// helper for enabling IE 8 event bindings
+function addEvent(el, type, handler) {
+    if (el.attachEvent) el.attachEvent('on'+type, handler); else el.addEventListener(type, handler);
+}
+
+// live binding helper
+function live(selector, event, callback, context) {
+    addEvent(context || document, event, function(e) {
+        var found, el = e.target || e.srcElement;
+        while (el && !(found = el.id == selector)) el = el.parentElement;
+        if (found) callback.call(el, e);
+    });
+}
+
+shim.init();
