@@ -67,49 +67,45 @@ var uploadImage = async function(event)	{
 				prompt: true
 			}
 		);*/
-		var albumTemplateRawUrl = await DatArchive.resolveName('dat://album-template.hashbase.io/');
-		albumArchive = await DatArchive.fork(`dat://${albumTemplateRawUrl}`,{
-	  		title: 'pixfly Album: ' + document.querySelector('#album-name').value,
-	  		description: 'Photos you upload will be stored here',
-	  		prompt: true
-		});
+		try {
+			var albumTemplateRawUrl = await DatArchive.resolveName('dat://album-template.hashbase.io/');
+			albumArchive = await DatArchive.fork(`dat://${albumTemplateRawUrl}`,{
+	  			title: 'pixfly Album: ' + document.querySelector('#album-name').value,
+	  			description: 'Photos you upload will be stored here',
+	  			prompt: true
+			});
 
-		var time = Date.now().toString();
-		var albumConfigObj = {
-			"name": document.querySelector('#album-name').value,
-			"parent": archive.url,
-			"createdAt": time
-		};
+			var time = Date.now().toString();
+			var albumConfigObj = {
+				"name": document.querySelector('#album-name').value,
+				"parent": archive.url,
+				"createdAt": time
+			};
 
-		var albumConfigStr = JSON.stringify(albumConfigObj);
+			var albumConfigStr = JSON.stringify(albumConfigObj);
 
-		await albumArchive.writeFile('/config.json',albumConfigStr);
+			await albumArchive.writeFile('/config.json',albumConfigStr);
 		//console.log(albumArchive);
 
-		for(let i=0;i<files.length;i++)	{
-			const reader = new FileReader();
-			const file = files[i];
-			fileNames.push([file.name,""]);
-
-			reader.onload = async function()	{
-				var targetPath = `/posts/images/${file.name}`;
-
-				/*try {
-					await archive.stat(targetPath);
-				} catch (e) {
-					//await archive.writeFile(targetPath,reader.result);
-					setTimeout(async function(){await archive.writeFile(targetPath,reader.result);},timeOut+=5000);
-				} finally {
-				}*/
-				//appendImage(targetPath);
-				setTimeout(async function(){albumArchive.writeFile(targetPath,reader.result);},timeOut+=3000);
-			};
+			for(let i=0;i<files.length;i++)	{
+				const reader = new FileReader();
+				const file = files[i];
+				fileNames.push([file.name,""]);
+				console.log(file.size);
+				//var msg = (file.size > 1048576‬) ? "File size 1 > 1MB" : "File size is okay to be uploaded through UI";
+				//console.log(msg);
+				reader.onload = async function()	{
+					var targetPath = `/posts/images/${file.name}`;
+					setTimeout(async function(){albumArchive.writeFile(targetPath,reader.result);},timeOut+=3000);
+				};
 			//setTimeout(function(){reader.readAsArrayBuffer(file);},timeOut+=5000);
-			reader.readAsArrayBuffer(file);
-		}
+				reader.readAsArrayBuffer(file);
+			}
 
-		createAlbum(fileNames,albumArchive.url);//Now create album.json
-	}
+			createAlbum(fileNames,albumArchive.url);//Now create album.json
+	} catch (e) {
+		createAlbumBtn.disabled = false;
+	} finally {
 }
 
 var createAlbum = async function(imageNames,archiveURL)	{
@@ -169,7 +165,6 @@ var redirectToAlbum = function(event)	{
 }
 
 var appendAlbum = async function(name)	{
-	//console.log(name);
 	var albumList = document.querySelector('#album-list');
 	//console.log(albumList);
 
@@ -182,12 +177,12 @@ var appendAlbum = async function(name)	{
 	//anchorEl.setAttribute('href','#');
 	anchorEl.setAttribute('href',album.url);
 	anchorEl.setAttribute('data-target','_blank');
-	anchorEl.setAttribute('id',`a-${name}`)
+	anchorEl.setAttribute('id',`a-${name.includes(' ')?name.split(' ')[0]:name}`)
 	//anchorEl.addEventListener('click',redirectToAlbum);
 
 	mediaEl = document.createElement('div');
 	mediaEl.setAttribute('class','media border p-3');
-	mediaEl.setAttribute('id',name);
+	mediaEl.setAttribute('id',`${name.includes(' ')?name.split(' ')[0]:name}`);
 
 	mediaBodyEl = document.createElement('div');
 	mediaBodyEl.setAttribute('class','media-body');
@@ -207,7 +202,7 @@ var appendAlbum = async function(name)	{
 	if( info.isOwner )	{
 		var deleteBtn = document.createElement('button');
 		deleteBtn.setAttribute('type','button');
-		deleteBtn.setAttribute('id',`del-${name}`);
+		deleteBtn.setAttribute('id',`del-${name.includes(' ')?name.split(' ')[0]:name}`);
 		deleteBtn.setAttribute('class','btn btn-outline-danger btn-sm m-2 float-right');
 
 		var deleteicon = document.createElement('i')//document.createElement('span');
@@ -216,7 +211,7 @@ var appendAlbum = async function(name)	{
 		//deleteicon.setAttribute('id',`cardD-${i}`);
 		deleteicon.setAttribute('class','fa fa-trash');
 		deleteicon.setAttribute('aria-hidden','true');
-		deleteicon.setAttribute('id',`delico-${name}`);
+		deleteicon.setAttribute('id',`delico-${name.includes(' ')?name.split(' ')[0]:name}`);
 		deleteicon.addEventListener('click',deleteAlbum);
 		deleteBtn.appendChild(deleteicon);
 		deleteBtn.addEventListener('click',deleteAlbum);
@@ -226,7 +221,7 @@ var appendAlbum = async function(name)	{
 
 		var shareBtn = document.createElement('button');
 		shareBtn.setAttribute('type','button');
-		shareBtn.setAttribute('id',`shr-${name}`);
+		shareBtn.setAttribute('id',`shr-${name.includes(' ')?name.split(' ')[0]:name}`);
 		shareBtn.setAttribute('class','btn btn-outline-primary btn-sm m-2 float-right');
 		shareBtn.addEventListener('click',shareAlbum);
 
