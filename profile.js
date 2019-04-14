@@ -92,7 +92,7 @@ var saveChanges = async function()	{
 		await archive.configure({
 			title:'P2P-Photo Share user: '+updatedProfile.name
 		});
-		setTimeout(function(){profile=updatedProfile;renderProfile();},2000);},5000);
+		setTimeout(function(){profile=updatedProfile;renderProfile();},200);},500);
 	disableSave();
 };
 
@@ -129,12 +129,24 @@ var getNameAndExtension = function(fileName)	{
 	return extn;
 }
 
-document.querySelector('#name-edit').addEventListener('click',enableUserEdit);
-document.querySelector('#about-edit').addEventListener('click',enableAboutEdit);
-document.querySelector('#name-edit').addEventListener('input',enableSave);
-document.querySelector('#about-edit').addEventListener('input',enableSave);
-document.querySelector('#save-button').addEventListener('click',saveChanges);
+var checkOwnership = async function()	{
+	var info = await archive.getInfo();
+	if( info.isOwner )	{
+		document.querySelector('#name-edit').addEventListener('click',enableUserEdit);
+		document.querySelector('#about-edit').addEventListener('click',enableAboutEdit);
+		document.querySelector('#name-edit').addEventListener('input',enableSave);
+		document.querySelector('#about-edit').addEventListener('input',enableSave);
+		document.querySelector('#save-button').addEventListener('click',saveChanges);
 
-document.querySelector('input[type="file"]').addEventListener('change', uploadImage);
-document.querySelector('#acceptBtn').addEventListener('click',uploadProfilePhoto);
-document.querySelector('#cancelBtn').addEventListener('click',cancelImage);
+		document.querySelector('input[type="file"]').addEventListener('change', uploadImage);
+		document.querySelector('#acceptBtn').addEventListener('click',uploadProfilePhoto);
+		document.querySelector('#cancelBtn').addEventListener('click',cancelImage);
+	}
+	else {
+		document.querySelector('input[type="file"]').setAttribute('data-toggle','');
+		document.querySelector('input[type="file"]').setAttribute('data-target','');
+		document.querySelector('input[type="file"]').type = "";
+	}
+};
+
+checkOwnership();
