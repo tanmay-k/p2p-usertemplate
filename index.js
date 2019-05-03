@@ -162,7 +162,7 @@ var createAlbum = async function(imageNames,archiveURL)	{
 			'url': archiveURL,
 			'images': imageNames,
 			'createdAt': curTime
-		}
+		};
 		var newAlbumString = JSON.stringify(newAlbum);
 		await albumArchive.writeFile(targetPath,newAlbumString);
 		await archive.writeFile(targetPath,newAlbumString);
@@ -179,6 +179,7 @@ var createAlbum = async function(imageNames,archiveURL)	{
 
 //Just returns random alphanumeric string of given length.
 //Although this method is not in use currently, but I think it might be useful in future
+/*
 var getRandomAlphaNumericString = function(len)	{
   	var text = "";
 
@@ -188,8 +189,8 @@ var getRandomAlphaNumericString = function(len)	{
     		text += charset.charAt(Math.floor(Math.random() * charset.length));
   	}
   	return text;
-};
-
+};*/
+/*
 var redirectToAlbum = function(event)	{
 	//alert('We received your images. This page is under construction.');
 	//event.preventDefault();
@@ -197,7 +198,7 @@ var redirectToAlbum = function(event)	{
 	var clickedId = event.target.attributes['id'].value;
 	localStorage.setItem('clickedAlbum',clickedId);
 	window.location = '/album.html';
-};
+};*/
 
 var appendAlbum = async function(name)	{
 	var albumList = document.querySelector('#album-list');
@@ -273,6 +274,7 @@ var appendAlbum = async function(name)	{
 	}
 };
 
+/*
 var shareAlbum = function(event)	{
 	var id = event.target.attribute.id.value;
 	var textBox = document.createElement('input');
@@ -285,7 +287,7 @@ var shareAlbum = function(event)	{
 	textBox.execCommand("copy");
 	alert("Album URL copied to clipboard!, Now you can share it anywhere...");
 };
-
+*/
 var deleteAlbum = async function(e)	{
 	var albumList = document.querySelector('#album-list');
 	if( ( e.toElement.localName === "i" & e.toElement.className === "fa fa-trash" ) || ( e.toElement.localName === "button" & e.toElement.className === "btn btn-outline-danger btn-sm m-2 float-right" ) )	{
@@ -293,7 +295,7 @@ var deleteAlbum = async function(e)	{
 		var albumAnchorEl = document.querySelector(`#a-${id.split('-')[1]}`);
 		//console.log(albumMedia);
 		var albumRef = albumAnchorEl.href;
-		console.log(albumRef);
+		//console.log(albumRef);
 		var albumToDelete = document.querySelector(`#${id.split('-')[1]}`);
 		await DatArchive.unlink(albumRef);
 		albumList.removeChild(albumToDelete);
@@ -311,10 +313,10 @@ document.querySelector('#upload-images').addEventListener('click',uploadImage);/
 var loadAlbums = async function()	{
 	try {
 		var paths = await archive.readdir('/posts/albums');
-		console.log(paths);
+		//console.log(paths);
 		for(let i=0;i<paths.length;i++)	{
 			var path = `/posts/albums/${paths[i]}`;
-			console.log(path);
+			//console.log(path);
 			if( path.endsWith('.empty') )	{
 				//await archive.unlink(path);// do not uncomment this line, it can cause major problems!
 				continue;//ignore the .empty file
@@ -339,7 +341,7 @@ var loadAlbums = async function()	{
 };
 
 loadAlbums();
-
+/*
 var shim = shim || {};
 shim.init = function(){
 	shim.closestPolyfill();
@@ -384,3 +386,4 @@ function live(selector, event, callback, context) {
 }
 
 shim.init();
+*/
